@@ -10,7 +10,7 @@ app.use(router)
 router.post("/api/auth/signup", async (req: Request, res: Response) => {
     const {name, email,role,password } = req.body;
     const result = await pool.query(`
-        INSERT INTO users(name,email,role,password) VALUES($1,$2,COALESCE($3,'CONTRIBUTOR'),$4) RETURNING *
+        INSERT INTO users(name,email,role,password) VALUES($1,$2,COALESCE($3,'contributor'),$4) RETURNING *
         ` ,[name,email,role, password],
     )
     console.log(result)
