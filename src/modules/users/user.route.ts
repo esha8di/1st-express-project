@@ -2,7 +2,7 @@ import { Router } from "express";
 
 export const router = Router();
 
-router.post("/", (req: Request, res: Response) => {
-    const body = req.body;
-    console.log(body)
+router.post("/api/auth/signup", (req: Request, res: Response) => {
+    const {name, email,role,password } = req.body;
+    console.log(name);
 });
