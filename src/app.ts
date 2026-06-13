@@ -7,7 +7,10 @@ import userrouter from "./modules/users/user.route";
 export const router = Router();
 
 app.use(express.json());
-app.use(router)
-app.use("/api/auth",userrouter)
+app.use(express.text());
+app.use(express.urlencoded({ extended: true })); // will accept nested data
+app.use(router);
+app.use("/api/auth",userrouter);
+
 
 export default app;
