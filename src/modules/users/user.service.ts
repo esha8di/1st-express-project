@@ -19,7 +19,7 @@ const getuserfromDB = async (payload: any) => {
   const { email, password } = payload;
   const user=await pool.query(
     `
-            SELECT id,name,email,password,role,created_at,updated_at FROM users where email=$1 `,
+            SELECT * FROM users where email=$1 `,
     [email],
   );
   if(user.rows.length === 0){

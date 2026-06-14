@@ -43,7 +43,7 @@ const loginUser = async(req: Request, res: Response)=>{
     catch(error){
         res.status(500).json({
       success: false,
-      message: "Failed to create user",
+      message: "something went wrong!!",
       error:error
     });
 

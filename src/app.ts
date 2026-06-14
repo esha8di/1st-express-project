@@ -12,6 +12,7 @@ app.use(express.urlencoded({ extended: true })); // will accept nested data
 app.use(cookieParser())
 app.use(router);
 app.use("/api/auth",userrouter);
+app.use("api/issues")
 
 
 
