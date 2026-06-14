@@ -28,7 +28,12 @@ const loginUser = async(req: Request, res: Response)=>{
         
 
         const result= await userService.getuserfromDB(req.body)
-
+        const {accessToken} = result;
+        res.cookie("accessToken",accessToken,{
+          secure:false,
+          httpOnly:true,
+          sameSite:'lax'
+        })
             res.status(200).json({
                 message : "Login successful",
                 data:result

@@ -2,6 +2,7 @@ import { pool } from "../../db";
 import bcrypt from "bcrypt";
 import type { IUSER } from "./user.interface";
 import jwt, { type JwtPayload } from "jsonwebtoken"
+import config from "../../config";
 const createuserintoDB = async (payload: IUSER) => {
   const { name, email, role, password } = payload;
   const hashPassword = await bcrypt.hash(password, 12);
@@ -34,8 +35,18 @@ const getuserfromDB = async (payload: any) => {
     role:user.rows[0].role
   } as JwtPayload;
 
-  const accessToken = jwt.sign(jsonPayload,"34345",{expiresIn:"1d"});
-  return {accessToken}
+  const accessToken = jwt.sign(jsonPayload,config.secret as string ,{expiresIn:"1d"});
+  return {accessToken,
+    user:{
+    id: user.rows[0].id,
+    name: user.rows[0].name,
+    email: user.rows[0].email,
+    role: user.rows[0].role,
+    created_at: user.rows[0].created_at,
+    updated_at: user.rows[0].updated_at,
+
+    }
+  }
 };
 
 export const userService = {
