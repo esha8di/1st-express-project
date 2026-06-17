@@ -1,8 +1,11 @@
 import { Router } from "express";
+import { userController } from "./user.controller";
+import auth from "../../middleware/auth";
 
 export const router = Router();
 
-router.post("/", (req: Request, res: Response) => {
-    const body = req.body;
-    console.log(body)
-});
+router.post("/signup", userController.createUser);
+router.post("/login",userController.loginUser);
+
+const userrouter = router;
+export default userrouter;
