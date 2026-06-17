@@ -77,40 +77,42 @@ const getIssuebyId = async (req: Request, res: Response) => {
     });
   }
 };
-const updateIssuebyID = async(req: Request, res: Response)=>{
-  const {id} =req.params;
-  const {title,description,type} = req.body;
-  try{
-    const result = await pool.query(
-      `
-      UPDATE 
-      issues set 
-      title = COALESCE($1, title), description = COALESCE($2,description ), type = COALESCE($3,type) where id = $4 RETURNING *
-  
-      `
-      ,[title,description,type,id]
-    )
-    if (result.rows.length === 0) {
+const updateIssuebyID = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const token = req.headers.authorization;
+    const decodedToken = jwt.verify(
+      token as string,
+      config.secret as string,
+    ) as JwtPayload;
+    const user = await pool.query(`SELECT * FROM users WHERE id = $1`, [
+      decodedToken.id,
+    ]);
+
+    const existingIssue = await issueService.getIssuebyIdfromDB(id);
+    if (existingIssue.rows.length === 0) {
       return res.status(404).json({ message: "issue not found!!" });
     }
+  
+    if (user.rows[0].id !== existingIssue.rows[0].reporter.id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const result= await issueService.updateIssueinDB(req.body,id);
+
     res.status(200).json({
       success: true,
-      message: "issue retrieve successfully",
+      message: "issue updated successfully",
       data: result.rows[0],
     });
-
-
-  }
-  catch(error){
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: "Issue does not exist",
       error: error,
     });
-
   }
-
-}
+};
 export const issueController = {
   createIssue,
   getIssue,
