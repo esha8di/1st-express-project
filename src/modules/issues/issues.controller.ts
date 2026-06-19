@@ -113,9 +113,38 @@ const updateIssuebyID = async (req: Request, res: Response) => {
     });
   }
 };
+
+const deleteIssue = async ( req: Request, res:Response) =>{
+  const {id} = req.params;
+  try{
+    const issue = await pool.query(`
+      SELECT * FROM issues where id=$1`,[id]);
+
+      if(issue.rows.length===0){
+        return res.status(404).json({ message: "issue not found!!" });
+      }
+
+      const result = await pool.query(`
+      DELETE FROM issues where id=$1`,[id]);
+      res.status(200).json({
+      success: true,
+      message: "issue deleted successfully",
+      data: issue.rows[0],
+    });
+
+  }
+  catch(error){
+     res.status(500).json({
+      success: false,
+      message: "Issue does not exist",
+    });
+
+  }
+}
 export const issueController = {
   createIssue,
   getIssue,
   getIssuebyId,
-  updateIssuebyID
+  updateIssuebyID,
+  deleteIssue
 };
