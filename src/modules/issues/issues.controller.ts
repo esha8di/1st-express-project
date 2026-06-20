@@ -124,6 +124,19 @@ const deleteIssue = async ( req: Request, res:Response) =>{
         return res.status(404).json({ message: "issue not found!!" });
       }
 
+    const token = req.headers.authorization;
+    const decodedToken = jwt.verify(
+      token as string,
+      config.secret as string,
+    ) as JwtPayload;
+    const user = await pool.query(`SELECT * FROM users WHERE id = $1`, [
+      decodedToken.id,
+    ]);
+    if(user.rows[0].id!== issue.rows[0].reporter_id){
+      return res.status(404).json({ message: "issue not found!!" });
+
+    }
+
       const result = await pool.query(`
       DELETE FROM issues where id=$1`,[id]);
       res.status(200).json({
