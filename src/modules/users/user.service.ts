@@ -1,7 +1,7 @@
 import { pool } from "../../db";
 import bcrypt from "bcrypt";
-import type { IUSER, IUserLogin, IJwtPayload } from "./user.interface";
-import jwt from "jsonwebtoken";
+import type { IUSER, IUserLogin } from "./user.interface";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 
 const createuserintoDB = async (payload: IUSER) => {
@@ -27,7 +27,7 @@ const getuserfromDB = async (payload: IUserLogin) => {
   if (!comparePassword) {
     throw new Error("Invalid credential!");
   }
-  const jwtPayload: IJwtPayload = {
+  const jwtPayload: JwtPayload = {
     id: user.rows[0].id,
     name: user.rows[0].name,
     role: user.rows[0].role,
