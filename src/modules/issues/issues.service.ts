@@ -1,7 +1,8 @@
 import { pool } from "../../db";
+import type { IIssue, IIssueUpdate } from "./issues.interface";
 
 const createIssue = async (
-  payload: { title: string; description: string; type?: string },
+  payload: IIssue,
   reporter_id: number,
 ) => {
   const { title, description, type } = payload;
@@ -20,7 +21,7 @@ const getIssues = async (query: {
   const { sort = "newest", type, status } = query;
 
   let sql = `SELECT * FROM issues WHERE 1=1`;
-  const values: any[] = [];
+  const values: string[] = [];
   let count = 1;
 
   if (type) {
@@ -41,43 +42,44 @@ const getIssues = async (query: {
   return result;
 };
 
-const getIssuebyIdfromDB = async(payload:any)=>{
-  const id = payload;
-   const result =await pool.query(`
-      SELECT 
+const getIssuebyIdfromDB = async (id: string) => {
+  const result = await pool.query(
+    `SELECT
       i.id,
-    i.title,
-    i.description,
-    i.type,
-    i.status,
-    i.created_at,
-    i.updated_at,
-    json_build_object(
-    'id', u.id,
+      i.title,
+      i.description,
+      i.type,
+      i.status,
+      i.created_at,
+      i.updated_at,
+      json_build_object(
+        'id', u.id,
         'name', u.name,
         'role', u.role
-    ) AS reporter
+      ) AS reporter
      FROM issues i
      JOIN users u
      ON i.reporter_id = u.id
-     WHERE i.id =$1`,[id])
-      return result
+     WHERE i.id = $1`,
+    [id],
+  );
+  return result;
+};
 
-}
-
-const updateIssueinDB = async(payload:any,id:any)=>{
+const updateIssueinDB = async (payload: IIssueUpdate, id: string) => {
   const { title, description, type } = payload;
   const result = await pool.query(
-      `UPDATE issues SET
+    `UPDATE issues SET
        title = COALESCE($1, title), description = COALESCE($2, description), type = COALESCE($3, type)
        WHERE id = $4 RETURNING *`,
-      [title, description, type, id],
-    );
-    return result
-}
+    [title, description, type, id],
+  );
+  return result;
+};
+
 export const issueService = {
   createIssue,
   getIssues,
   getIssuebyIdfromDB,
-  updateIssueinDB
+  updateIssueinDB,
 };

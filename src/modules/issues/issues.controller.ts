@@ -3,6 +3,7 @@ import jwt, { type JwtPayload } from "jsonwebtoken";
 import config from "../../config";
 import { issueService } from "./issues.service";
 import { pool } from "../../db";
+import sendResponse from "../../utilities/sendResponse";
 
 const createIssue = async (req: Request, res: Response) => {
   try {
@@ -20,15 +21,15 @@ const createIssue = async (req: Request, res: Response) => {
       { title, description, type },
       reporter_id,
     );
-    return res.status(201).json({
-      success: true,
+    return sendResponse(res, {
+      statusCode: 201,
       message: "Issue created successfully",
       data: result.rows[0],
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({
-      success: false,
+    return sendResponse(res, {
+      statusCode: 500,
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }
@@ -42,16 +43,15 @@ const getIssue = async (req: Request, res: Response) => {
       status?: string;
     };
     const result = await issueService.getIssues({ sort, type, status });
-    res.status(200).json({
-      success: true,
+    return sendResponse(res, {
+      statusCode: 200,
       message: "Issues retrived successfully",
       data: result.rows,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
+    return sendResponse(res, {
+      statusCode: 500,
       message: "Something went wrong",
-      error: error,
     });
   }
 };
@@ -62,21 +62,21 @@ const getIssuebyId = async (req: Request, res: Response) => {
     const result = await issueService.getIssuebyIdfromDB(id);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "issue not found!!" });
+      return sendResponse(res, { statusCode: 404, message: "issue not found!!" });
     }
-    res.status(200).json({
-      success: true,
+    return sendResponse(res, {
+      statusCode: 200,
       message: "issue retrieve successfully",
       data: result.rows[0],
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
+    return sendResponse(res, {
+      statusCode: 500,
       message: "issue does not exist",
-      error: error,
     });
   }
 };
+
 const updateIssuebyID = async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
@@ -91,38 +91,36 @@ const updateIssuebyID = async (req: Request, res: Response) => {
 
     const existingIssue = await issueService.getIssuebyIdfromDB(id);
     if (existingIssue.rows.length === 0) {
-      return res.status(404).json({ message: "issue not found!!" });
+      return sendResponse(res, { statusCode: 404, message: "issue not found!!" });
     }
-  
+
     if (user.rows[0].id !== existingIssue.rows[0].reporter.id) {
-      return res.status(403).json({ message: "Unauthorized" });
+      return sendResponse(res, { statusCode: 403, message: "Unauthorized" });
     }
 
-    const result= await issueService.updateIssueinDB(req.body,id);
-
-    res.status(200).json({
-      success: true,
+    const result = await issueService.updateIssueinDB(req.body, id);
+    return sendResponse(res, {
+      statusCode: 200,
       message: "issue updated successfully",
       data: result.rows[0],
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
+    return sendResponse(res, {
+      statusCode: 500,
       message: "Issue does not exist",
-      error: error,
     });
   }
 };
 
-const deleteIssue = async ( req: Request, res:Response) =>{
-  const {id} = req.params;
-  try{
+const deleteIssue = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
     const issue = await pool.query(`
-      SELECT * FROM issues where id=$1`,[id]);
+      SELECT * FROM issues where id=$1`, [id]);
 
-      if(issue.rows.length===0){
-        return res.status(404).json({ message: "issue not found!!" });
-      }
+    if (issue.rows.length === 0) {
+      return sendResponse(res, { statusCode: 404, message: "issue not found!!" });
+    }
 
     const token = req.headers.authorization;
     const decodedToken = jwt.verify(
@@ -132,32 +130,28 @@ const deleteIssue = async ( req: Request, res:Response) =>{
     const user = await pool.query(`SELECT * FROM users WHERE id = $1`, [
       decodedToken.id,
     ]);
-    if(user.rows[0].id!== issue.rows[0].reporter_id){
-      return res.status(404).json({ message: "issue not found!!" });
-
+    if (user.rows[0].id !== issue.rows[0].reporter_id) {
+      return sendResponse(res, { statusCode: 404, message: "issue not found!!" });
     }
 
-      const result = await pool.query(`
-      DELETE FROM issues where id=$1`,[id]);
-      res.status(200).json({
-      success: true,
+    await pool.query(`DELETE FROM issues where id=$1`, [id]);
+    return sendResponse(res, {
+      statusCode: 200,
       message: "issue deleted successfully",
       data: issue.rows[0],
     });
-
-  }
-  catch(error){
-     res.status(500).json({
-      success: false,
+  } catch (error) {
+    return sendResponse(res, {
+      statusCode: 500,
       message: "Issue does not exist",
     });
-
   }
-}
+};
+
 export const issueController = {
   createIssue,
   getIssue,
   getIssuebyId,
   updateIssuebyID,
-  deleteIssue
+  deleteIssue,
 };
