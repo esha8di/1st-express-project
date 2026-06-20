@@ -14,9 +14,9 @@ const createIssue = async (
 };
 
 const getIssues = async (query: {
-  sort?: string;
-  type?: string;
-  status?: string;
+  sort?: string | undefined;
+  type?: string | undefined;
+  status?: string | undefined;
 }) => {
   const { sort = "newest", type, status } = query;
 
@@ -42,7 +42,7 @@ const getIssues = async (query: {
   return result;
 };
 
-const getIssuebyIdfromDB = async (id: string) => {
+const getIssuebyIdfromDB = async (id: any) => {
   const result = await pool.query(
     `SELECT
       i.id,
@@ -66,7 +66,7 @@ const getIssuebyIdfromDB = async (id: string) => {
   return result;
 };
 
-const updateIssueinDB = async (payload: IIssueUpdate, id: string) => {
+const updateIssueinDB = async (payload: IIssueUpdate, id: any) => {
   const { title, description, type } = payload;
   const result = await pool.query(
     `UPDATE issues SET
