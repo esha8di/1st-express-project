@@ -85,11 +85,14 @@ const updateIssuebyID = async (req: Request, res: Response) => {
       token as string,
       config.secret as string,
     ) as JwtPayload;
+
+
     const user = await pool.query(`SELECT * FROM users WHERE id = $1`, [
       decodedToken.id,
     ]);
 
     const existingIssue = await issueService.getIssuebyIdfromDB(id);
+    
     if (existingIssue.rows.length === 0) {
       return sendResponse(res, { statusCode: 404, message: "issue not found!!" });
     }
@@ -148,10 +151,55 @@ const deleteIssue = async (req: Request, res: Response) => {
   }
 };
 
+const updateIssuebySatus = async(req: Request, res: Response) =>{
+   const { id } = req.params;
+   const {status} = req.body;
+   
+  try {
+    const issue = await pool.query(`
+      SELECT * FROM issues where id=$1`, [id]);
+
+    if (issue.rows.length === 0) {
+      return sendResponse(res, { statusCode: 404, message: "issue not found!!" });
+    }
+
+    const token = req.headers.authorization;
+    const decodedToken = jwt.verify(
+      token as string,
+      config.secret as string,
+    ) as JwtPayload;
+    const user = await pool.query(`SELECT * FROM users WHERE id = $1`, [
+      decodedToken.id,
+    ]);
+    
+
+    if(user.rows[0].role ==="maintainer"){
+      const result = await issueService.updateDBbyStatus({status},id);
+
+      return sendResponse(res, {
+      statusCode: 200,
+      message: "status updated successfully",
+      data: result.rows[0],
+    });
+    }
+    return sendResponse(res, {
+      statusCode: 401,
+      message: "contributor can not able to change the status!!"
+    });
+  } catch (error) {
+    return sendResponse(res, {
+      statusCode: 500,
+      message: "Issue does not exist",
+    });
+  }
+
+}
+
 export const issueController = {
   createIssue,
   getIssue,
   getIssuebyId,
   updateIssuebyID,
   deleteIssue,
+  updateIssuebySatus
 };

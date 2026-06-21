@@ -1,5 +1,5 @@
 import { pool } from "../../db";
-import type { IIssue, IIssueUpdate } from "./issues.interface";
+import type { IIssue, IIssuestatus, IIssueUpdate } from "./issues.interface";
 
 const createIssue = async (
   payload: IIssue,
@@ -77,9 +77,21 @@ const updateIssueinDB = async (payload: IIssueUpdate, id: any) => {
   return result;
 };
 
+const updateDBbyStatus = async (payload:IIssuestatus, id:any) =>{
+   const {status} = payload;
+  const result = await pool.query(`
+        UPDATE issues set
+        status = COALESCE($1, status)
+         WHERE id = $2 RETURNING *
+        `,[status,id]);
+
+        return result;
+
+}
 export const issueService = {
   createIssue,
   getIssues,
   getIssuebyIdfromDB,
   updateIssueinDB,
+  updateDBbyStatus
 };
